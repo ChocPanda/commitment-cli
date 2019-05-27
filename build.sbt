@@ -2,7 +2,7 @@
 // Projects
 // *****************************************************************************
 
-lazy val commitment =
+lazy val `commitment-cli` =
   project
     .in(file("."))
     .enablePlugins(AutomateHeaderPlugin)
@@ -22,10 +22,10 @@ lazy val library =
   new {
     object Version {
       val scalaCheck = "1.14.0"
-      val scalaTest  = "3.0.6"
+      val utest      = "0.6.7"
     }
     val scalaCheck = "org.scalacheck" %% "scalacheck" % Version.scalaCheck
-    val scalaTest  = "org.scalatest"  %% "scalatest"  % Version.scalaTest
+    val utest      = "com.lihaoyi"    %% "utest"      % Version.utest
   }
 
 // *****************************************************************************
@@ -33,8 +33,10 @@ lazy val library =
 // *****************************************************************************
 
 lazy val settings =
-  commonSettings ++
-  scalafmtSettings
+commonSettings ++
+fmtSettings ++
+fixSettings ++
+styleSettings
 
 lazy val commonSettings =
   Seq(
@@ -57,7 +59,34 @@ lazy val commonSettings =
     Compile / compile / wartremoverWarnings ++= Warts.unsafe,
 )
 
-lazy val scalafmtSettings =
+lazy val fmtSettings =
   Seq(
-    scalafmtOnCompile := true,
+    scalafmtOnCompile := true
   )
+
+lazy val fixSettings =
+  Seq(
+    addCompilerPlugin(scalafixSemanticdb),
+    scalacOptions ++= Seq(
+      "-Yrangepos",
+      "-Ywarn-unused-import"
+    )
+  )
+
+lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
+lazy val styleSettings = {
+  Seq(
+    scalastyleFailOnError := true,
+    scalastyleFailOnWarning := true
+  )
+}
+
+// *****************************************************************************
+// Commands
+// *****************************************************************************
+
+addCommandAlias("fix", "; compile:scalafix; test:scalafix")
+addCommandAlias("fixcheck", "; compile:scalafix --check; test:scalafix --check")
+addCommandAlias("fmt", "; compile:scalafmt; test:scalafmt; scalafmtSbt")
+addCommandAlias("fmtcheck", "; compile:scalafmtCheck; test:scalafmtCheck; scalafmtSbtCheck")
+addCommandAlias("stylecheck", "; compile:scalastyle; test:scalastyle")
