@@ -1,4 +1,4 @@
-# commitment #
+# commitment-cli #
 
 Welcome to commitment!
 
